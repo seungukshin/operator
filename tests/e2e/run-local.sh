@@ -102,7 +102,7 @@ main() {
 	pushd "$script_dir" >/dev/null
 	echo "::info:: Bootstrap the local machine"
 	step_bootstrap_env=1
-	run 10m ansible-playbook -i localhost, -c local --tags untagged ansible/main.yaml
+	run 10m ansible-playbook -vvv -i localhost, -c local --tags untagged ansible/main.yaml
 
 	echo "::info:: Bring up the test cluster"
 	step_start_cluster=1

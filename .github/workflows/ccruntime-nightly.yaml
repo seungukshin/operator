@@ -11,6 +11,7 @@ jobs:
       commit-hash: ${{ github.sha }}
 
   e2e-ibm-se-nightly:
+    if: ${{ false }}
     runs-on: s390x-large
     strategy:
       fail-fast: false

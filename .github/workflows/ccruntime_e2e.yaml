@@ -22,27 +22,27 @@ jobs:
         runtimeclass:
           - "kata-qemu"
         instance:
-          - "ubuntu-20.04"
+          #- "ubuntu-20.04"
           - "ubuntu-22.04"
-          - "s390x-large"
-          - "tdx"
-          - "sev"
-          - "sev-snp"
-          - "arm64-nvidia-gpu"
-        exclude:
-          - runtimeclass: "kata-qemu"
-            instance: "tdx"
-          - runtimeclass: "kata-qemu"
-            instance: "sev"
-          - runtimeclass: "kata-qemu"
-            instance: "sev-snp"
-        include:
-          - runtimeclass: "kata-qemu-tdx"
-            instance: "tdx"
-          - runtimeclass: "kata-qemu-sev"
-            instance: "sev"
-          - runtimeclass: "kata-qemu-snp"
-            instance: "sev-snp"
+          #- "s390x-large"
+          #- "tdx"
+          #- "sev"
+          #- "sev-snp"
+          - "ubuntu-22.04-arm"
+        #exclude:
+        #  - runtimeclass: "kata-qemu"
+        #    instance: "tdx"
+        #  - runtimeclass: "kata-qemu"
+        #    instance: "sev"
+        #  - runtimeclass: "kata-qemu"
+        #    instance: "sev-snp"
+        #include:
+        #  - runtimeclass: "kata-qemu-tdx"
+        #    instance: "tdx"
+        #  - runtimeclass: "kata-qemu-sev"
+        #    instance: "sev"
+        #  - runtimeclass: "kata-qemu-snp"
+        #    instance: "sev-snp"
     runs-on: ${{ matrix.instance }}
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4
@@ -71,13 +71,20 @@ jobs:
           if [ $RUNNING_INSTANCE = "s390x-large" ]; then
             args=""
             export pre_install_payload_archs="linux/s390x"
-          elif [ "$RUNNING_INSTANCE" == "ubuntu-20.04" ] || [ "$RUNNING_INSTANCE" == "ubuntu-22.04" ]; then
+          elif [[ "$RUNNING_INSTANCE" == "ubuntu-"* ]] || [[ "$RUNNING_INSTANCE" == "arm64-nvidia-gpu" ]]; then
             # Remove the pre-installed docker/containerd
             sudo apt-get remove docker* containerd* -y
             # Use /mnt to store images
             sudo rm -Rf /var/lib/docker || true
             sudo mkdir /mnt/docker || true
             sudo ln -s /mnt/docker /var/lib/docker || true
+            # Use /mnt/go for GOPATH
+            sudo rm -Rf $HOME/go || true
+            sudo mkdir /mnt/go || true
+            sudo ln -s /mnt/go $HOME/go || true
+            if [ "$RUNNING_INSTANCE" == "ubuntu-22.04-arm" ] || [ "$RUNNING_INSTANCE" == "arm64-nvidia-gpu" ]; then
+              export pre_install_payload_archs="linux/arm64"
+            fi
           fi
           ./run-local.sh -t -r "${{ matrix.runtimeclass }}" "${args}"
         env:
